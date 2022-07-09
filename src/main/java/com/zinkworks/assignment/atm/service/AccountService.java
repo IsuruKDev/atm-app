@@ -20,14 +20,14 @@ public class AccountService {
     @Autowired
     ATMService atmService;
 
-
     @Transactional
-    public Account withdrawMoney(Account account, ATM atm, BigDecimal withdrawAmount){
+    public Account withdrawMoney(Account account,  BigDecimal withdrawAmount){
         BigDecimal currentBalance = account.getBalance();
+        ATM currentATM = atmService.getATMDetails();
 
         if (isMoneyEnoughToWithdrawFromTheAccount(currentBalance, withdrawAmount, account.getOverdraftAmount())){
 
-            if (atmService.isMoneyAvailableOnATM(withdrawAmount, atm)){
+            if (atmService.isMoneyAvailableOnATM(withdrawAmount, currentATM)){
                 BigDecimal newAcctBalance = currentBalance.subtract(withdrawAmount);
                 account.setBalance(newAcctBalance);
                 return accountRepository.save(account);

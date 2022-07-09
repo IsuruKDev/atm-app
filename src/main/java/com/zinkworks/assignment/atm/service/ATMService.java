@@ -4,6 +4,7 @@ import com.zinkworks.assignment.atm.domain.ATM;
 import com.zinkworks.assignment.atm.domain.Account;
 import com.zinkworks.assignment.atm.repository.ATMRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,6 +15,9 @@ public class ATMService {
     @Autowired
     ATMRepository atmRepository;
 
+    @Value("S{app.atm.atmcode}")
+    String atmCode;
+
     public ATM fillCashWithATM(ATM atm){
         return atmRepository.save(atm);
     }
@@ -23,6 +27,10 @@ public class ATMService {
             return true;
 
         return false;
+    }
+
+    public ATM getATMDetails(){
+        return atmRepository.findATMByAtmCode(atmCode).get();
     }
 
     public ATM withdrawMoneyFromATM(BigDecimal withdrawAmount, ATM atm){
