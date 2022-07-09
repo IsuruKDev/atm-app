@@ -28,7 +28,7 @@ public class AccountService {
         if (isMoneyEnoughToWithdrawFromTheAccount(currentBalance, withdrawAmount, account.getOverdraftAmount())){
 
             if (atmService.isMoneyAvailableOnATM(withdrawAmount, atm)){
-                BigDecimal newAcctBalance = currentBalance.subtract(withdrawAmount).setScale(2);
+                BigDecimal newAcctBalance = currentBalance.subtract(withdrawAmount);
                 account.setBalance(newAcctBalance);
                 return accountRepository.save(account);
             }else {

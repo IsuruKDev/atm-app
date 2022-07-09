@@ -14,7 +14,7 @@ public class ATMService {
     @Autowired
     ATMRepository atmRepository;
 
-    public ATM initializeATM(ATM atm){
+    public ATM fillCashWithATM(ATM atm){
         return atmRepository.save(atm);
     }
 
@@ -52,11 +52,9 @@ public class ATMService {
         }
 
 
-        BigDecimal newBalance = atm.getBalance().subtract(withdrawAmount).setScale(2);
+        BigDecimal newBalance = atm.getBalance().subtract(withdrawAmount);
         atm.setBalance(newBalance);
         return atmRepository.save(atm);
     }
-
-
 
 }

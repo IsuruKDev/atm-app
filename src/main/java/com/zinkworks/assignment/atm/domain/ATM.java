@@ -34,9 +34,4 @@ public class ATM {
     private int twentyEuro;
     private int fiftyEuro;
 
-    /*public BigDecimal getCurrentBalance(){
-        int sum = (fiftyEuro*50)+(twentyEuro*20)+(tenEuro*10)+(fiveEuro*5);
-        return new BigDecimal(sum).setScale(2);
-    }*/
-
 }
