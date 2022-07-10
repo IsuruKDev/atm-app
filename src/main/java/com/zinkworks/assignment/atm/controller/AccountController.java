@@ -1,8 +1,9 @@
 package com.zinkworks.assignment.atm.controller;
 
 import com.zinkworks.assignment.atm.domain.Account;
+import com.zinkworks.assignment.atm.payload.AccountBalanceResponse;
 import com.zinkworks.assignment.atm.payload.AccountDetailRequest;
-import com.zinkworks.assignment.atm.payload.WithDrawResponse;
+import com.zinkworks.assignment.atm.payload.WithdrawResponse;
 import com.zinkworks.assignment.atm.payload.WithdrawRequest;
 import com.zinkworks.assignment.atm.repository.AccountRepository;
 import com.zinkworks.assignment.atm.service.AccountService;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @RestController
@@ -28,16 +30,25 @@ public class AccountController {
     WithdrawAmountPrecisionValidityService withdrawAmountPrecisionValidityService;
 
     @GetMapping("/balance")
-    public ResponseEntity<?> getAccountBalance(@Valid AccountDetailRequest detailRequest){
+    public ResponseEntity<?> getAccountBalance(@Valid @RequestBody AccountDetailRequest detailRequest){
 
         Optional<Account> optionalAccount = accountRepository
                 .findAccountByAccountNumber(detailRequest.getAccountNumber());
 
         if (optionalAccount.isPresent() && optionalAccount.get()
                 .getPin().equals(detailRequest.getPin())){
+            Account account = optionalAccount.get();
+            BigDecimal maximumWithdrawAmount = account.getBalance().add(account.getOverdraftAmount());
+
+            AccountBalanceResponse balanceResponse = AccountBalanceResponse
+                    .builder()
+                    .accountNumber(account.getAccountNumber())
+                    .accountBalance(account.getBalance())
+                    .maximumWithdrawalAmount(maximumWithdrawAmount)
+                    .build();
 
             return ResponseEntity
-                    .ok(optionalAccount.get().getBalance());
+                    .ok(balanceResponse);
         }
 
         return ResponseEntity
@@ -47,7 +58,7 @@ public class AccountController {
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdrawRequest(@Valid WithdrawRequest withdrawRequest){
+    public ResponseEntity<?> withdrawRequest(@Valid @RequestBody WithdrawRequest withdrawRequest){
 
         Optional<Account> optionalAccount = accountRepository
                 .findAccountByAccountNumber(withdrawRequest.getAccountNumber());
@@ -62,13 +73,10 @@ public class AccountController {
 
             if (withdrawAmountPrecisionValidityService
                     .isValidAmountRequested(withdrawRequest.getWithdrawAmount())){
-                Account account = accountService.withdrawMoney(optionalAccount.get(),withdrawRequest.getWithdrawAmount());
+                WithdrawResponse withdrawResponse = accountService.withdrawMoney(optionalAccount.get(),withdrawRequest.getWithdrawAmount());
 
-                return ResponseEntity.ok(WithDrawResponse
-                        .builder()
-                        .message("Cash withdrawal is successfull..")
-                        .currentBalance(account.getBalance())
-                        .build());
+                return ResponseEntity
+                        .ok(withdrawResponse);
 
             }else {
                 return ResponseEntity

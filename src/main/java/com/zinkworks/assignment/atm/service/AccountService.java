@@ -4,6 +4,8 @@ import com.zinkworks.assignment.atm.domain.ATM;
 import com.zinkworks.assignment.atm.domain.Account;
 import com.zinkworks.assignment.atm.exception.ATMFundNotEnoughException;
 import com.zinkworks.assignment.atm.exception.AccountFundNotEnoughException;
+import com.zinkworks.assignment.atm.payload.DispenseNotesDetails;
+import com.zinkworks.assignment.atm.payload.WithdrawResponse;
 import com.zinkworks.assignment.atm.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +23,7 @@ public class AccountService {
     ATMService atmService;
 
     @Transactional
-    public Account withdrawMoney(Account account,  BigDecimal withdrawAmount){
+    public WithdrawResponse withdrawMoney(Account account, BigDecimal withdrawAmount){
         BigDecimal currentBalance = account.getBalance();
         ATM currentATM = atmService.getATMDetails();
 
@@ -30,7 +32,22 @@ public class AccountService {
             if (atmService.isMoneyAvailableOnATM(withdrawAmount, currentATM)){
                 BigDecimal newAcctBalance = currentBalance.subtract(withdrawAmount);
                 account.setBalance(newAcctBalance);
-                return accountRepository.save(account);
+                DispenseNotesDetails notesDetails = atmService
+                        .withdrawMoneyFromATM(withdrawAmount, currentATM);
+
+                account = accountRepository.save(account);
+
+
+                return WithdrawResponse
+                        .builder()
+                        .accountNumber(account.getAccountNumber())
+                        .currentBalance(account.getBalance())
+                        .message("Cash withdrawal is successful.")
+                        .fiftyEuros(notesDetails.getFiftyEuros())
+                        .twentyEuros(notesDetails.getTwentyEuros())
+                        .tenEuros(notesDetails.getTenEuros())
+                        .fiveEuros(notesDetails.getFiveEuros())
+                        .build();
             }else {
                 throw new ATMFundNotEnoughException("Funds are not enough at the ATM");
             }
@@ -43,7 +60,7 @@ public class AccountService {
                                                          BigDecimal withdrawAmount,
                                                          BigDecimal overdraft){
         BigDecimal total = currentBalance.add(overdraft).setScale(2);
-        if (total.doubleValue()>withdrawAmount.doubleValue())
+        if (total.doubleValue()>=withdrawAmount.doubleValue())
             return true;
         return false;
     }

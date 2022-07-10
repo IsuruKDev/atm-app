@@ -10,7 +10,7 @@ public class WithdrawAmountPrecisionValidityService {
     public boolean isValidAmountRequested(BigDecimal withdrawAmount){
 
         BigDecimal remainder = new BigDecimal("0.00");
-        if (remainder.equals(withdrawAmount.divide(new BigDecimal("5"))))
+        if (remainder.equals(withdrawAmount.remainder(new BigDecimal("5.00"))))
             return true;
 
         return false;

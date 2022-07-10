@@ -1,15 +1,20 @@
 package com.zinkworks.assignment.atm.controller;
 
 import com.zinkworks.assignment.atm.domain.ATM;
+import com.zinkworks.assignment.atm.exception.ATMFundNotEnoughException;
+import com.zinkworks.assignment.atm.exception.ATMNotFoundException;
 import com.zinkworks.assignment.atm.payload.ATMInitRequest;
+import com.zinkworks.assignment.atm.payload.Message;
 import com.zinkworks.assignment.atm.repository.ATMRepository;
 import com.zinkworks.assignment.atm.service.ATMService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -22,8 +27,8 @@ public class ATMController {
     @Autowired
     ATMRepository atmRepository;
 
-    @PutMapping(path = "/init")
-    public ResponseEntity<?> initializeATM(@Valid ATMInitRequest initRequest){
+    @PostMapping(path = "/init")
+    public ResponseEntity<?> initializeATM(@Valid @RequestBody ATMInitRequest initRequest){
 
         ATM atm = ATM
                 .builder()
@@ -43,36 +48,21 @@ public class ATMController {
 
     @GetMapping(path = "/{code}")
     public ResponseEntity<?> getATMByCode(@PathVariable("code") String code){
-        Optional<ATM> atm = null;
-
-        if (code != null && !code.isEmpty()){
-            atm = atmRepository.findATMByAtmCode(code);
-            if(atm.isPresent()) {
-                return ResponseEntity.ok(atm);
-            }else {
-                return ResponseEntity
-                        .notFound()
-                        .build();
-            }
-        }else {
-            return ResponseEntity
-                    .badRequest()
-                    .body("code cannot be empty.");
-        }
+        return Optional
+                .ofNullable(atmRepository.findATMByAtmCode(code))
+                .map(atm -> ResponseEntity.ok().body(atm))
+                .orElseGet(()-> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @GetMapping(path = "/balance/{code}")
-    public ResponseEntity<?> getBalanceOfATM(@PathVariable("code") String code){
+    public ResponseEntity<?> getBalanceOfATM(@PathVariable("code") String code) {
 
-        if (code != null && !code.isEmpty()){
-            BigDecimal atmBalance = atmRepository.findBalanceByAtmCode(code);
-            return ResponseEntity
-                    .ok(atmBalance);
+        Optional<ATM> optionalATM = atmRepository.findATMByAtmCode(code);
+
+        if (optionalATM.isPresent()) {
+            return ResponseEntity.ok(optionalATM.get().getBalance());
         }
+        throw new ATMNotFoundException("Invalid ATM code.");
 
-        return ResponseEntity
-                .badRequest()
-                .body("Invalid ATM code..");
     }
-
 }

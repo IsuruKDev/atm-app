@@ -19,7 +19,7 @@ public class ATMInitRequest {
 
     private int id;
 
-    @NotBlank @Size(max = 6)
+    @NotBlank @Size(max = 10)
     private String code;
 
     @Digits(integer = 6, fraction = 2)
