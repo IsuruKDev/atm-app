@@ -87,7 +87,7 @@ class AccountServiceTest {
                 .build();
     }
 
-    @Test
+    @Test @Disabled
     void withdrawMoneyTest() {
 
         BigDecimal withdrawAmount = new BigDecimal("200.00");
@@ -157,7 +157,7 @@ class AccountServiceTest {
         assertTrue(exception.getMessage().contains("Funds are not enogh at your account"));
     }
 
-    @Test
+    @Test @Disabled
     void withdrawMoneyTest_ExpectFundNotEnoughAtATM(){
 
         BigDecimal withdrawAmount = new BigDecimal("200.00");
