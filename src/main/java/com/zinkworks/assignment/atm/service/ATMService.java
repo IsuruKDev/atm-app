@@ -2,6 +2,7 @@ package com.zinkworks.assignment.atm.service;
 
 import com.zinkworks.assignment.atm.domain.ATM;
 import com.zinkworks.assignment.atm.domain.Account;
+import com.zinkworks.assignment.atm.exception.ATMNotFoundException;
 import com.zinkworks.assignment.atm.payload.DispenseNotesDetails;
 import com.zinkworks.assignment.atm.repository.ATMRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Service
 public class ATMService {
@@ -24,14 +26,14 @@ public class ATMService {
     }
 
     public boolean isMoneyAvailableOnATM(BigDecimal withdrawAmount, ATM atm){
-        if (atm.getBalance().doubleValue()>withdrawAmount.doubleValue())
+        if (atm.getBalance().doubleValue()>=withdrawAmount.doubleValue())
             return true;
 
         return false;
     }
 
     public ATM getATMDetails(){
-        return atmRepository.findATMByAtmCode(atmCode).get();
+        return atmRepository.findATMByAtmCode(atmCode);
     }
 
     public DispenseNotesDetails withdrawMoneyFromATM(BigDecimal withdrawAmount, ATM atm){

@@ -48,19 +48,21 @@ public class ATMController {
 
     @GetMapping(path = "/{code}")
     public ResponseEntity<?> getATMByCode(@PathVariable("code") String code){
-        return Optional
-                .ofNullable(atmRepository.findATMByAtmCode(code))
-                .map(atm -> ResponseEntity.ok().body(atm))
-                .orElseGet(()-> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        ATM atm =atmRepository.findATMByAtmCode(code);
+
+        if (atm != null)
+            return ResponseEntity.ok(atm);
+        throw new ATMNotFoundException("ATM code is invalid");
+
     }
 
     @GetMapping(path = "/balance/{code}")
     public ResponseEntity<?> getBalanceOfATM(@PathVariable("code") String code) {
 
-        Optional<ATM> optionalATM = atmRepository.findATMByAtmCode(code);
+        ATM atm = atmRepository.findATMByAtmCode(code);
 
-        if (optionalATM.isPresent()) {
-            return ResponseEntity.ok(optionalATM.get().getBalance());
+        if (atm != null) {
+            return ResponseEntity.ok(atm.getBalance());
         }
         throw new ATMNotFoundException("Invalid ATM code.");
 
