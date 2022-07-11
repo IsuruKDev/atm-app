@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  mysqldb:
+    container_name: mysqldb
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=Stl@123456
+      - MYSQL_DATABASE=zinkworks_atm
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
+  app:
+    depends_on:
+      - mysqldb
+    build: .
+    restart: on-failure
+    ports:
+      - 8080:8080
+    environment:
+      - MYSQL_HOST=mysqldb
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=Stl@123456
+      - MYSQL_PORT=3306
+volumes:
+  db:
