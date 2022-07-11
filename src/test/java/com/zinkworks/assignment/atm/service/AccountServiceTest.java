@@ -2,6 +2,8 @@ package com.zinkworks.assignment.atm.service;
 
 import com.zinkworks.assignment.atm.domain.ATM;
 import com.zinkworks.assignment.atm.domain.Account;
+import com.zinkworks.assignment.atm.exception.ATMFundNotEnoughException;
+import com.zinkworks.assignment.atm.exception.AccountFundNotEnoughException;
 import com.zinkworks.assignment.atm.payload.DispenseNotesDetails;
 import com.zinkworks.assignment.atm.payload.WithdrawResponse;
 import com.zinkworks.assignment.atm.repository.ATMRepository;
@@ -85,7 +87,7 @@ class AccountServiceTest {
                 .build();
     }
 
-    @Test @Disabled
+    @Test
     void withdrawMoneyTest() {
 
         BigDecimal withdrawAmount = new BigDecimal("200.00");
@@ -134,8 +136,45 @@ class AccountServiceTest {
         assertNotNull(withdrawResponse);
         Assertions.assertThat(withdrawResponse.getFiftyEuros()).isEqualTo(4);
 
+    }
 
+    @Test
+    void withdrawMoneyTest_ExpectFundNotEnoughInAccount(){
 
+        BigDecimal withdrawAmount = new BigDecimal("200.00");
+        BigDecimal balance = new BigDecimal("800.00");
+        BigDecimal overdraft = new BigDecimal("200.00");
+
+        Mockito.when(accountService.
+                        isMoneyEnoughToWithdrawFromTheAccount(balance,withdrawAmount,overdraft))
+                .thenReturn(false);
+
+      //  WithdrawResponse withdrawResponse = accountService.withdrawMoney(account,withdrawAmount);
+
+        AccountFundNotEnoughException exception = assertThrows(AccountFundNotEnoughException.class,
+                ()-> accountService.withdrawMoney(account,withdrawAmount), "Funds are not enogh at your account");
+
+        assertTrue(exception.getMessage().contains("Funds are not enogh at your account"));
+    }
+
+    @Test
+    void withdrawMoneyTest_ExpectFundNotEnoughAtATM(){
+
+        BigDecimal withdrawAmount = new BigDecimal("200.00");
+        BigDecimal balance = new BigDecimal("800.00");
+        BigDecimal overdraft = new BigDecimal("200.00");
+
+        Mockito.when(accountService.
+                        isMoneyEnoughToWithdrawFromTheAccount(balance,withdrawAmount,overdraft))
+                .thenReturn(true);
+
+        Mockito.when(atmService.isMoneyAvailableOnATM(withdrawAmount, atm))
+                .thenReturn(false);
+
+        ATMFundNotEnoughException exception = assertThrows(ATMFundNotEnoughException.class,
+                ()-> accountService.withdrawMoney(account,withdrawAmount), "Funds are not enough at the ATM");
+
+        assertTrue(exception.getMessage().contains("Funds are not enough at the ATM"));
     }
 
     @Test
